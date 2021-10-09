@@ -4,6 +4,7 @@ import pandas as pd
 from algs.stul.STUL import STUL
 from algs.mna.MNA import MNA
 from algs.hydra.HYDRA import HYDRA
+from metrics.metrics import Evaluation
 
 def run():
     if args.alg == 'mna':
@@ -21,8 +22,12 @@ def run():
 
 
     model.train(args)
-    model.test(args)
+    eval = Evaluation()
+    eval.classification_eval(model.test(args))
+    #eval.ranking_eval(model.test(args))
 
 
 if __name__ == '__main__':
     run()
+   
+

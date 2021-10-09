@@ -1,12 +1,9 @@
-from sklearn import svm
-from sklearn.metrics import classification_report
 import json,os
 import joblib
 import numpy as np
 from geopy.distance import geodesic
 import time
 from sklearn.svm import SVC
-from sklearn.metrics import confusion_matrix,classification_report,roc_auc_score
 
 
 def cos_sim(a, b):
@@ -139,7 +136,7 @@ class MNA(object):
         y = []
         num=0
         for item in userset:
-            y.append(1 if item[0]==item[1] else 0)
+            y.append((item[0], item[1]))
             feature = get_features(data_a[item[0]], data_b[item[1]])
             x.append(feature)
             #num += 1
@@ -188,7 +185,13 @@ class MNA(object):
         print("Train MNA model!!!")
         data = np.load('data/train_feature.npz',allow_pickle=True)
         x,y = data['x'],data['y']
-        self.model.fit(x,y)
+        label = []
+        for item in y:
+            if item[0]==item[1]:
+                label.append(1)
+            else:
+                label.append(0)
+        self.model.fit(x,label)
 
         if args.save_model:
             print("Save MNA model!!!")
@@ -200,13 +203,15 @@ class MNA(object):
         print("Test MNA model!!!")
         data = np.load('data/test_feature.npz',allow_pickle=True)
         test_x,test_y = data['x'],data['y']
-        pred = self.model.predict(test_x)
-        pred_prob = self.model.predict_proba(test_x)[:,1]      
-        print(confusion_matrix(test_y, pred))
-        print(classification_report(test_y, pred, digits=4))
-        print('ROC:',roc_auc_score(test_y, pred_prob))
+        pred_prob = self.model.predict_proba(test_x)[:,1]    
+        #print(pred_prob.shape)
 
-        return 0
+        result = []
+        for i in range(len(test_y)):
+            result.append([test_y[i][0], test_y[i][1], pred_prob[i]])  
+        
+
+        return result
 
 
     
